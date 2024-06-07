@@ -3,6 +3,7 @@ package com.dmitriikuzmin.service;
 import com.dmitriikuzmin.model.TelegramUser;
 import com.dmitriikuzmin.repository.TelegramUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +17,11 @@ public class TelegramUserServiceImpl implements TelegramUserService {
 
     @Override
     public TelegramUser add(TelegramUser telegramUser) {
-        return this.telegramUserRepository.save(telegramUser);
+        try {
+            return this.telegramUserRepository.save(telegramUser);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Login already exist");
+        }
     }
 
     @Override
@@ -32,6 +37,11 @@ public class TelegramUserServiceImpl implements TelegramUserService {
         base.setName(telegramUser.getName());
         base.setAge(telegramUser.getAge());
         base.setStep(telegramUser.getStep());
-        return this.telegramUserRepository.save(base);
+        base.setCompliments(telegramUser.getCompliments());
+        try {
+            return this.telegramUserRepository.save(base);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Login already exist");
+        }
     }
 }

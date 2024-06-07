@@ -31,9 +31,6 @@ public class TelegramServiceImpl implements TelegramService {
                     public void onResponse(SendMessage sendMessage,
                                            SendResponse sendResponse) {
                         int messageId = sendResponse.message().messageId();
-
-                        //TODO handle messageId
-                        System.out.println(messageId);
                     }
 
                     @Override
@@ -57,11 +54,6 @@ public class TelegramServiceImpl implements TelegramService {
                 @Override
                 public void onResponse(SendPhoto sendPhoto, SendResponse sendResponse) {
                     int messageId = sendResponse.message().messageId();
-
-                    //TODO handle messageId
-                    System.out.println(messageId);
-
-                    System.out.println(sendResponse);
                 }
 
                 @Override
@@ -71,30 +63,6 @@ public class TelegramServiceImpl implements TelegramService {
             });
         } catch (IOException ignored) {
             ignored.printStackTrace();
-        }
-    }
-
-    @Override
-    public void sendAudio(long chatId, MultipartFile file) {
-        String name = file.getOriginalFilename();
-        try (BufferedOutputStream bufferedOutputStream =
-                     new BufferedOutputStream(new FileOutputStream(name))) {
-            bufferedOutputStream.write(file.getBytes());
-
-            TelegramBot bot = new TelegramBot(token);
-            bot.execute(new SendAudio(chatId, new File(name)), new Callback<SendAudio, SendResponse>() {
-
-                @Override
-                public void onResponse(SendAudio sendAudio, SendResponse sendResponse) {
-
-                }
-
-                @Override
-                public void onFailure(SendAudio sendAudio, IOException e) {
-                }
-            });
-        } catch (IOException ignored) {
-
         }
     }
 
@@ -111,11 +79,6 @@ public class TelegramServiceImpl implements TelegramService {
                 @Override
                 public void onResponse(SendDocument sendDocument, SendResponse sendResponse) {
                     int messageId = sendResponse.message().messageId();
-
-                    //TODO handle messageId
-                    System.out.println(messageId);
-
-                    System.out.println(sendResponse);
                 }
 
                 @Override

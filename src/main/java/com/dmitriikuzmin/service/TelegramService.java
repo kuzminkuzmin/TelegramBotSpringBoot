@@ -8,8 +8,6 @@ public interface TelegramService {
 
     void sendImage(long chatId, MultipartFile file);
 
-    void sendAudio(long chatId, MultipartFile file);
-
     void sendDocument(long chatId, MultipartFile file);
 
 

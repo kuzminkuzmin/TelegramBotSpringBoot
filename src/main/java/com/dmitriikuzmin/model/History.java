@@ -26,7 +26,7 @@ public class History {
     private LocalDateTime time = LocalDateTime.now();
 
     @NonNull
-    private Action action;
+    private String action;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

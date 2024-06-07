@@ -37,4 +37,16 @@ public class TelegramUser {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<History> history;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "telegram_users_compliments",
+            joinColumns = @JoinColumn(name = "telegram_user_id"),
+            inverseJoinColumns = @JoinColumn(name = "compliment_id")
+    )
+    private List<Compliment> compliments;
+
+    public void clearCompliments() {
+        this.compliments.clear();
+    }
 }

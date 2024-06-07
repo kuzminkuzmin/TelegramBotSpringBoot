@@ -1,0 +1,20 @@
+### POST Message
+POST localhost:8080/telegram/message/121997199?message=Test message
+
+### POST File
+POST localhost:8080/telegram/document/121997199 HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="UserFilesSpringBoot.docx"
+
+< C:\Users\NB-01\Desktop\UserFilesSpringBoot.docx
+
+### POST Image
+POST localhost:8080/telegram/image/121997199 HTTP/1.1
+Content-Type: multipart/form-data; multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="PlanJavaDeveloper.png"
+
+< C:\Users\NB-01\Desktop\PlanJavaDeveloper.png
