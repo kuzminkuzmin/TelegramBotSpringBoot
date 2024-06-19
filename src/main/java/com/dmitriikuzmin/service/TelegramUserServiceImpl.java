@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TelegramUserServiceImpl implements TelegramUserService {
     private TelegramUserRepository telegramUserRepository;
@@ -28,6 +30,11 @@ public class TelegramUserServiceImpl implements TelegramUserService {
     public TelegramUser getByChatId(Long chatId) {
         return this.telegramUserRepository.findByChatId(chatId)
                 .orElseThrow(() -> new IllegalArgumentException("wrong chatId"));
+    }
+
+    @Override
+    public List<TelegramUser> getAll() {
+        return this.telegramUserRepository.findAll();
     }
 
     @Override

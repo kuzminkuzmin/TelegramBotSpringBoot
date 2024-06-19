@@ -126,16 +126,20 @@ public class TelegramBotController implements TelegramMvcController {
      */
     @BotRequest(value = "/register", type = {MessageType.CALLBACK_QUERY, MessageType.MESSAGE})
     public BaseRequest register(User user, Chat chat) {
-        TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
-        this.historyService.add(telegramUser.getChatId(), new History("register"));
-        if (telegramUser.getStep().equals("start")) {
-            return sendMessageWithReply(telegramUser.getChatId(), "Enter login:");
-        } else if (telegramUser.getStep().equals("login")) {
-            return sendMessageWithReply(telegramUser.getChatId(), "Enter name:");
-        } else if (telegramUser.getStep().equals("age")) {
-            return sendMessageWithReply(telegramUser.getChatId(), "Enter age:");
-        } else {
-            return sendMessageWithReply(telegramUser.getChatId(), "Enter login:");
+        try {
+            TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
+            this.historyService.add(telegramUser.getChatId(), new History("register"));
+            if (telegramUser.getStep().equals("start")) {
+                return sendMessageWithReply(telegramUser.getChatId(), "Enter login:");
+            } else if (telegramUser.getStep().equals("login")) {
+                return sendMessageWithReply(telegramUser.getChatId(), "Enter name:");
+            } else if (telegramUser.getStep().equals("age")) {
+                return sendMessageWithReply(telegramUser.getChatId(), "Enter age:");
+            } else {
+                return sendMessageWithReply(telegramUser.getChatId(), "Enter login:");
+            }
+        } catch (IllegalArgumentException e) {
+            return sendMessageWithReply(chat.id(), "Send /start to begin");
         }
     }
 
@@ -149,18 +153,22 @@ public class TelegramBotController implements TelegramMvcController {
      */
     @BotRequest(value = "/next", type = {MessageType.CALLBACK_QUERY, MessageType.MESSAGE})
     public BaseRequest next(User user, Chat chat) {
-        TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
-        if (telegramUser.getStep().equals("completed")) {
-            try {
-                Compliment compliment = this.complimentService.getRandomCompliment(chat.id());
-                this.historyService.add(telegramUser.getChatId(), new History("next - compliment: " + compliment.getId()));
-                return sendMessageWithKeyboard(telegramUser.getChatId(), compliment.getText());
-            } catch (IllegalArgumentException e) {
-                return sendMessageWithKeyboard(telegramUser.getChatId(), e.getMessage());
+        try {
+            TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
+            if (telegramUser.getStep().equals("completed")) {
+                try {
+                    Compliment compliment = this.complimentService.getRandomCompliment(chat.id());
+                    this.historyService.add(telegramUser.getChatId(), new History("next - compliment: " + compliment.getId()));
+                    return sendMessageWithKeyboard(telegramUser.getChatId(), compliment.getText());
+                } catch (IllegalArgumentException e) {
+                    return sendMessageWithKeyboard(telegramUser.getChatId(), e.getMessage());
+                }
+            } else {
+                return sendMessageWithReply(telegramUser.getChatId(),
+                        "Registration uncompleted. To complete registration send /register");
             }
-        } else {
-            return sendMessageWithReply(telegramUser.getChatId(),
-                    "Registration uncompleted. To complete registration send /register");
+        } catch (IllegalArgumentException e) {
+            return sendMessageWithReply(chat.id(), "Send /start to begin");
         }
     }
 
@@ -173,18 +181,22 @@ public class TelegramBotController implements TelegramMvcController {
      */
     @BotRequest(value = "/all", type = {MessageType.CALLBACK_QUERY, MessageType.MESSAGE})
     public BaseRequest all(User user, Chat chat) {
-        TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
-        if (telegramUser.getStep().equals("completed")) {
-            List<Compliment> all = this.complimentService.getAllCompliments();
-            StringBuilder compliment = new StringBuilder();
-            for (Compliment comp : all) {
-                compliment.append(comp.getText()).append("\n");
+        try {
+            TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
+            if (telegramUser.getStep().equals("completed")) {
+                List<Compliment> all = this.complimentService.getAllCompliments();
+                StringBuilder compliment = new StringBuilder();
+                for (Compliment comp : all) {
+                    compliment.append(comp.getText()).append("\n");
+                }
+                this.historyService.add(telegramUser.getChatId(), new History("all"));
+                return sendMessageWithKeyboard(telegramUser.getChatId(), compliment.toString());
+            } else {
+                return sendMessageWithReply(telegramUser.getChatId(),
+                        "Registration uncompleted. To complete registration send /register");
             }
-            this.historyService.add(telegramUser.getChatId(), new History("all"));
-            return sendMessageWithKeyboard(telegramUser.getChatId(), compliment.toString());
-        } else {
-            return sendMessageWithReply(telegramUser.getChatId(),
-                    "Registration uncompleted. To complete registration send /register");
+        } catch (IllegalArgumentException e) {
+            return sendMessageWithReply(chat.id(), "Send /start to begin");
         }
     }
 
@@ -198,68 +210,76 @@ public class TelegramBotController implements TelegramMvcController {
      */
     @BotRequest(value = "/photos", type = {MessageType.CALLBACK_QUERY, MessageType.MESSAGE})
     public BaseRequest photos(User user, Chat chat) {
-        TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
-        if (telegramUser.getStep().equals("completed")) {
-            this.historyService.add(telegramUser.getChatId(), new History("photos"));
-            File folder = new File("photos");
-            File[] list = folder.listFiles();
-            if (list != null) {
-                StringBuilder photosNamesList = new StringBuilder();
-                for (File file : list) {
-                    photosNamesList.append(file.getName()).append("\n");
+        try {
+            TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
+            if (telegramUser.getStep().equals("completed")) {
+                this.historyService.add(telegramUser.getChatId(), new History("photos"));
+                File folder = new File("photos");
+                File[] list = folder.listFiles();
+                if (list != null) {
+                    StringBuilder photosNamesList = new StringBuilder();
+                    for (File file : list) {
+                        photosNamesList.append(file.getName()).append("\n");
+                    }
+                    return sendMessageWithReply(telegramUser.getChatId(),
+                            photosNamesList.toString() + "Text photo name:");
+                } else {
+                    return sendMessageWithKeyboard(telegramUser.getChatId(), "No photos at this time");
                 }
-                return sendMessageWithReply(telegramUser.getChatId(),
-                        photosNamesList.toString() + "Text photo name:");
             } else {
-                return sendMessageWithKeyboard(telegramUser.getChatId(), "No photos at this time");
+                return sendMessageWithReply(telegramUser.getChatId(),
+                        "Registration uncompleted. To complete registration send /register");
             }
-        } else {
-            return sendMessageWithReply(telegramUser.getChatId(),
-                    "Registration uncompleted. To complete registration send /register");
+        } catch (IllegalArgumentException e) {
+            return sendMessageWithReply(chat.id(), "Send /start to begin");
         }
     }
 
 
     @BotRequest(value = "{message:[\\S ]+}", type = {MessageType.CALLBACK_QUERY, MessageType.MESSAGE})
     public BaseRequest listen(@BotPathVariable("message") String text, User user, Chat chat) {
-        TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
-        if (telegramUser.getStep().equals("start")) {
-            telegramUser.setLogin(text);
-            telegramUser.setStep("login");
-            try {
+        try {
+            TelegramUser telegramUser = this.telegramUserService.getByChatId(chat.id());
+            if (telegramUser.getStep().equals("start")) {
+                telegramUser.setLogin(text);
+                telegramUser.setStep("login");
+                try {
+                    this.telegramUserService.update(telegramUser);
+                    return sendMessageWithReply(telegramUser.getChatId(), "Enter name:");
+                } catch (IllegalArgumentException e) {
+                    return sendMessageWithReply(telegramUser.getChatId(), e.getMessage() + " Enter another login:");
+                }
+            } else if (telegramUser.getStep().equals("login")) {
+                telegramUser.setName(text);
+                telegramUser.setStep("age");
                 this.telegramUserService.update(telegramUser);
-                return sendMessageWithReply(telegramUser.getChatId(), "Enter name:");
-            } catch (IllegalArgumentException e) {
-                return sendMessageWithReply(telegramUser.getChatId(), e.getMessage() + " Enter another login:");
-            }
-        } else if (telegramUser.getStep().equals("login")) {
-            telegramUser.setName(text);
-            telegramUser.setStep("age");
-            this.telegramUserService.update(telegramUser);
-            return sendMessageWithReply(telegramUser.getChatId(), "Enter age:");
-        } else if (telegramUser.getStep().equals("age")) {
-            try {
-                telegramUser.setAge(Integer.parseInt(text));
-                telegramUser.setStep("completed");
-                this.telegramUserService.update(telegramUser);
-                return sendMessageWithKeyboard(telegramUser.getChatId(), "Registration completed");
-            } catch (NumberFormatException e) {
-                return sendMessageWithReply(telegramUser.getChatId(),
-                        "Wrong number. Use only numbers. Enter age:");
-            }
-        } else if (telegramUser.getStep().equals("completed")) {
-            File folder = new File("photos");
-            File[] list = folder.listFiles();
-            if (list != null) {
-                for (File file : list) {
-                    if (file.getName().equals(text)) {
-                        return sendImageWithKeyboard(telegramUser.getChatId(), "photos\\" + file.getName());
+                return sendMessageWithReply(telegramUser.getChatId(), "Enter age:");
+            } else if (telegramUser.getStep().equals("age")) {
+                try {
+                    telegramUser.setAge(Integer.parseInt(text));
+                    telegramUser.setStep("completed");
+                    this.telegramUserService.update(telegramUser);
+                    return sendMessageWithKeyboard(telegramUser.getChatId(), "Registration completed");
+                } catch (NumberFormatException e) {
+                    return sendMessageWithReply(telegramUser.getChatId(),
+                            "Wrong number. Use only numbers. Enter age:");
+                }
+            } else if (telegramUser.getStep().equals("completed")) {
+                File folder = new File("photos");
+                File[] list = folder.listFiles();
+                if (list != null) {
+                    for (File file : list) {
+                        if (file.getName().equals(text)) {
+                            return sendImageWithKeyboard(telegramUser.getChatId(), "photos\\" + file.getName());
+                        }
                     }
                 }
+                return sendMessageWithKeyboard(telegramUser.getChatId(), "Wrong command");
+            } else {
+                return sendMessageWithKeyboard(telegramUser.getChatId(), "Wrong command");
             }
-            return sendMessageWithKeyboard(telegramUser.getChatId(), "Wrong command");
-        } else {
-            return sendMessageWithKeyboard(telegramUser.getChatId(), "Wrong command");
+        } catch (IllegalArgumentException e) {
+            return sendMessageWithReply(chat.id(), "Send /start to begin");
         }
     }
 }
